@@ -1,0 +1,41 @@
+[
+  {
+    "id": "7e56b041-eaff-4307-9424-a8b712aa1508",
+    "status": "IN_PROGRESS",
+    "platform": "ANDROID",
+    "artifacts": {},
+    "fingerprint": {
+      "id": "01a02ede-32ea-78b8-85c3-4e43895d9582",
+      "hash": "28e337c15e5a9735e686545afdef489c8194d7c1"
+    },
+    "initiatingActor": {
+      "id": "4dc76d77-a9f4-47cc-95ee-191cd9dbb672",
+      "displayName": "sairamakrishna"
+    },
+    "logFiles": [
+      "https://storage.googleapis.com/eas-workflows-production/logs/5da322d0-9294-4201-8877-ead23dd77b74/7e56b041-eaff-4307-9424-a8b712aa1508/2026-08-23T13%3A45%3A13Z-a7345c5d-7d00-451a-83f2-1130669418f1.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260823%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260823T135803Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=a115e61c17a1dc207c3e55d57d02306ef6a46fdc9adb3e6328fdca60b5ade6dcb1bf43409e656a0886b31ef502be19e62236711f71d874edcf3aa0171aa96a24647a575ace0b4ee66f21f3e0aa6d7955e7698b42490d46c236e3f8da5f76ec2988cf2b9a0e53010b212655eda42d16b52cb92732ae07e7a24e8af32669f410b776e3bc3f7a6dd034b19aaf7c8caac5cb4b9632812a7cff586a04e0071d8695069c0192906fe91a900322d1cc8b12a5652c503b4a9db0b841b2b287e76706e9c9cad9be1822a671385267b9263aca88925230fab9631f2ded80b4de498b02fea0638a9310cd68f7a64d7460ab428e5486cf9517dd6a2a69374a40a0678aaa9f99"
+    ],
+    "app": {
+      "id": "5da322d0-9294-4201-8877-ead23dd77b74",
+      "name": "med-reminder",
+      "slug": "med-reminder",
+      "ownerAccount": {
+        "id": "5c549f69-b1c6-4ea8-9378-682577230d14",
+        "name": "sairamakrishna"
+      }
+    },
+    "distribution": "INTERNAL",
+    "buildProfile": "development",
+    "appIdentifier": "com.medreminder.app",
+    "sdkVersion": "57.0.0",
+    "appVersion": "1.0.0",
+    "appBuildVersion": "1",
+    "gitCommitHash": "d92821ac2902a0435dfced55964c72d0c1be4b39",
+    "gitCommitMessage": "Remove broken expo-av and add raw alarm config plugin",
+    "priority": "NORMAL",
+    "createdAt": "2026-08-23T13:45:09.054Z",
+    "updatedAt": "2026-08-23T13:45:17.678Z",
+    "expirationDate": "2026-09-06T13:45:09.088Z",
+    "isForIosSimulator": false
+  }
+]
