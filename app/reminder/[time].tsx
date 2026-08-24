@@ -7,7 +7,7 @@ import { SwipeToTaken } from '../../src/components/SwipeToTaken';
 import { useTheme } from '../../src/context/ThemeContext';
 import { updateOccurrenceStatus } from '../../src/database/occurrencesRepository';
 import { addLog } from '../../src/database/logsRepository';
-import { scheduleMedicationNotification } from '../../src/services/notificationService';
+import { scheduleMedicationNotification, cancelAllMedicationNotifications } from '../../src/services/notificationService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ReminderScreen() {
@@ -20,8 +20,11 @@ export default function ReminderScreen() {
   const { occurrences, refetch } = useMedications(todayIso);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Vibrate intensely when the alarm screen opens
+  // Vibrate intensely when the alarm screen opens and stop the sound
   useEffect(() => {
+    // Stop the looping Notifee alarm sound immediately
+    cancelAllMedicationNotifications();
+    
     // Vibrate pattern: 1s on, 1s off, 1s on, 1s off, 1s on
     Vibration.vibrate([1000, 1000, 1000, 1000, 1000]);
     

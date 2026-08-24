@@ -34,6 +34,35 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    async function checkInitialNotification() {
+      const initialNotification = await notifee.getInitialNotification();
+      if (initialNotification) {
+        handleNotificationRouting(initialNotification.notification);
+      }
+    }
+    checkInitialNotification();
+
+    const unsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS || type === EventType.DELIVERED) {
+        handleNotificationRouting(detail.notification);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const handleNotificationRouting = async (notification: any) => {
+    if (notification?.id) {
+      await notifee.cancelNotification(notification.id);
+    }
+    if (notification?.data?.time) {
+      router.push(`/reminder/${notification.data.time}`);
+    }
+  };
+
+  useEffect(() => {
     if (!dbReady) return;
 
     const interval = setInterval(async () => {

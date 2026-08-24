@@ -1,13 +1,55 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Linking, NativeModules } from 'react-native';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useState } from 'react';
 import { clearAllData } from '../../src/database/database';
 import { Ionicons } from '@expo/vector-icons';
 
+import notifee, { AndroidNotificationSetting, AndroidCategory } from '@notifee/react-native';
+import { useEffect } from 'react';
+
+const { CustomPermissions } = NativeModules;
+
 export default function SettingsScreen() {
   const { colors, mode, setMode } = useTheme();
   const styles = getStyles(colors);
   
+  const [alarmGranted, setAlarmGranted] = useState(true);
+  const [batteryOptEnabled, setBatteryOptEnabled] = useState(false);
+  const [overlayGranted, setOverlayGranted] = useState(false);
+  const [channelSoundOk, setChannelSoundOk] = useState(false);
+
+  useEffect(() => {
+    async function checkPerms() {
+      const settings = await notifee.getNotificationSettings();
+      if (settings.android && settings.android.alarm === AndroidNotificationSetting.DISABLED) {
+        setAlarmGranted(false);
+      } else {
+        setAlarmGranted(true);
+      }
+      
+      try {
+        const isBatOpt = await notifee.isBatteryOptimizationEnabled();
+        setBatteryOptEnabled(isBatOpt);
+        
+        if (CustomPermissions && CustomPermissions.canDrawOverlays) {
+          const hasOverlay = await CustomPermissions.canDrawOverlays();
+          setOverlayGranted(hasOverlay);
+        }
+        
+        // Check if v5 channel exists and is not blocked
+        const channel = await notifee.getChannel('medication-alarms-v5');
+        if (channel && channel.blocked === false && channel.importance === 4) {
+          setChannelSoundOk(true);
+        } else {
+          setChannelSoundOk(false);
+        }
+      } catch (e) {
+        console.log('Battery/Overlay check failed', e);
+      }
+    }
+    checkPerms();
+  }, []);
+
   const handleClearData = () => {
     Alert.alert(
       'Clear All Data',
@@ -32,7 +74,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.header}>Settings</Text>
       
       <View style={styles.section}>
@@ -62,6 +104,85 @@ export default function SettingsScreen() {
       </View>
 
       <View style={[styles.section, { marginTop: 24 }]}>
+        <Text style={styles.sectionTitle}>Alarm Setup Checklist</Text>
+        <Text style={styles.description}>
+          For alarms to wake up your phone, ALL of the following must be configured correctly.
+        </Text>
+        
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>1. Exact Alarms Permission</Text>
+          <Text style={{ color: alarmGranted ? colors.success : colors.danger, marginBottom: 8 }}>
+            Status: {alarmGranted ? '✅ Granted' : '❌ Error: Not Granted'}
+          </Text>
+          {!alarmGranted && (
+            <TouchableOpacity style={[styles.button, { backgroundColor: colors.danger, marginBottom: 12 }]} onPress={async () => {
+              try { await notifee.openAlarmPermissionSettings(); } catch(e) {}
+            }}>
+              <Text style={styles.buttonText}>Fix Alarm Permission</Text>
+            </TouchableOpacity>
+          )}
+
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>2. Background Running (Battery)</Text>
+          <Text style={{ color: !batteryOptEnabled ? colors.success : colors.danger, marginBottom: 8 }}>
+            Status: {!batteryOptEnabled ? '✅ Unrestricted' : '❌ Error: Restricted by OS'}
+          </Text>
+          {batteryOptEnabled && (
+            <TouchableOpacity style={[styles.button, { backgroundColor: colors.danger, marginBottom: 12 }]} onPress={async () => {
+              try { await notifee.openBatteryOptimizationSettings(); } catch(e) {}
+            }}>
+              <Text style={styles.buttonText}>Allow Background Run</Text>
+            </TouchableOpacity>
+          )}
+
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>3. Display Over Other Apps</Text>
+          <Text style={{ color: overlayGranted ? colors.success : '#F59E0B', marginBottom: 8 }}>
+            Status: {overlayGranted ? '✅ Granted' : '⚠️ Needs manual check in App Info'}
+          </Text>
+          {!overlayGranted && (
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#F59E0B', marginBottom: 12 }]} onPress={() => Linking.openSettings()}>
+              <Text style={styles.buttonText}>Check Display Permission</Text>
+            </TouchableOpacity>
+          )}
+
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>4. Notification Channel Sound</Text>
+          <Text style={{ color: channelSoundOk ? colors.success : '#F59E0B', marginBottom: 8 }}>
+            Status: {channelSoundOk ? '✅ Granted (High Priority)' : '⚠️ Needs manual check in Settings'}
+          </Text>
+          {!channelSoundOk && (
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#F59E0B', marginBottom: 12 }]} onPress={async () => await notifee.openNotificationSettings()}>
+              <Text style={styles.buttonText}>Check Notification Sound</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity 
+            style={[styles.button, { backgroundColor: '#3B82F6', marginBottom: 16 }]} 
+            onPress={async () => {
+              await notifee.displayNotification({
+                title: 'Test Alarm',
+                body: 'If you can hear this, your alarm sound is working perfectly!',
+                android: {
+                  channelId: 'medication-alarms-v5',
+                  category: AndroidCategory.ALARM,
+                  loopSound: true,
+                  fullScreenAction: {
+                    id: 'default'
+                  }
+                }
+              });
+            }}
+          >
+            <Ionicons name="volume-high-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+            <Text style={styles.buttonText}>Test Alarm Sound Now</Text>
+          </TouchableOpacity>
+
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>5. Auto-Launch (Realme/Xiaomi only)</Text>
+          <Text style={{ color: '#F59E0B', fontSize: 13, marginBottom: 8 }}>
+            Status: ⚠️ If you have a Chinese phone, you MUST manually go to your phone Settings -> Apps -> Auto Launch and turn this ON.
+          </Text>
+        </View>
+      </View>
+
+      <View style={[styles.section, { marginTop: 24, marginBottom: 40 }]}>
         <Text style={[styles.sectionTitle, { color: colors.danger }]}>Danger Zone</Text>
         <Text style={styles.description}>
           Permanently delete all your medications, logs, and schedules from the app.
@@ -71,7 +192,7 @@ export default function SettingsScreen() {
           <Text style={styles.buttonText}>Clear All Data</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

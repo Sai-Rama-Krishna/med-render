@@ -25,13 +25,13 @@ export async function configureNotifications() {
   if (Platform.OS === 'android') {
     try {
       await notifee.createChannel({
-        id: 'medication-alarms',
+        id: 'medication-alarms-v5',
         name: 'Medication Alarms',
         importance: AndroidImportance.HIGH,
         vibration: true,
         vibrationPattern: [300, 500, 300, 500],
         lightColor: '#FF231F7C',
-        sound: 'alarm',
+        sound: 'default',
         bypassDnd: true, // Wake device even on Do Not Disturb
       });
     } catch (e) {
@@ -62,14 +62,15 @@ export async function scheduleMedicationNotification(
       body,
       data,
       android: {
-        channelId: 'medication-alarms',
+        channelId: 'medication-alarms-v5',
         importance: AndroidImportance.HIGH,
         visibility: AndroidVisibility.PUBLIC,
         category: AndroidCategory.ALARM,
+        loopSound: true,
+        sound: 'default',
         // Full screen action wakes the device when locked
         fullScreenAction: {
           id: 'default',
-          mainComponent: 'medreminder', 
         },
       },
     }, trigger);
